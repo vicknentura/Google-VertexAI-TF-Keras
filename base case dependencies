@@ -1,0 +1,31 @@
+#Authorize the connection respective to the active account
+SERVICE_ACCOUNT_ID=vertex-custom-training-sa
+gcloud iam service-accounts create $SERVICE_ACCOUNT_ID  \
+    --description="A custom service account for Vertex custom training with Tensorboard" \
+    --display-name="Vertex AI Custom Training"
+
+#Enable the services used in the lab – may not be needed
+PROJECT_ID=$(gcloud config get-value core/project)
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member=serviceAccount:$SERVICE_ACCOUNT_ID@$PROJECT_ID.iam.gserviceaccount.com \
+    --role="roles/storage.admin"
+
+#Create custom service account
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member=serviceAccount:$SERVICE_ACCOUNT_ID@$PROJECT_ID.iam.gserviceaccount.com \
+    --role="roles/bigquery.admin"
+
+#Grant access to Cloud Storage for writing and retrieving Tensorboard logs
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member=serviceAccount:$SERVICE_ACCOUNT_ID@$PROJECT_ID.iam.gserviceaccount.com \
+    --role="roles/aiplatform.user"
+
+#Grant access to BigQuery data source to read data into your TensorFlow model
+git clone --depth=1 https://github.com/GoogleCloudPlatform/training-data-analyst
+
+#Grant access to Vertex AI for running model
+cd training-data-analyst/self-paced-labs/vertex-ai/vertex-ai-qwikstart
+pip3 install --user -r requirements.txt
+sudo apt -y install python3-pandas
+pip uninstall openpyxl
+pip install openpyxl
